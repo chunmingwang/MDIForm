@@ -48,9 +48,9 @@
 		Dim As MainMenu MainMenu1
 		Dim As MenuItem mnuFile, mnuFileNew, mnuFileOpen, mnuFileSave, mnuFileSaveAs, mnuFileBar1, mnuFileBar2, mnuFileSaveAll, mnuFileBar3, mnuFileProperties, mnuFilePrintSetup, mnuFilePrintPreview, mnuFilePrint, mnuFileBar4, mnuFileExit
 		Dim As MenuItem mnuEdit, mnuEditUndo, mnuRedo, mnuEditCopy, mnuEditCut, mnuEditPaste, mnuEditBar1, mnuEditDelete, mnuEditBar2, mnuEditSelectAll
-		Dim As MenuItem mnuView, mnuViewToolbar, mnuViewStatusBar, mnuViewBar1, mnuViewRefresh
+		Dim As MenuItem mnuView, mnuViewToolbar, mnuViewStatusBar, mnuViewBar1, mnuViewDarkMode
 		Dim As MenuItem mnuHelp, mnuHelpAbout
-		Dim As MenuItem mnuWindow, mnuWindowCascade, mnuWindowTileHorizontal, mnuWindowTileVertical, mnuWindowArrangeIcons, mnuWindowClose, mnuWindowCloseAll, MenuItem3, mnuViewDarkMode
+		Dim As MenuItem mnuWindow, mnuWindowCascade, mnuWindowTileHorizontal, mnuWindowTileVertical, mnuWindowArrangeIcons, mnuWindowClose, mnuWindowCloseAll, mnuWindowBar1
 		Dim As ImageList ImageList1
 		Dim As StatusBar StatusBar1
 		Dim As ToolBar ToolBar1
@@ -71,7 +71,11 @@
 				This.Icon.LoadFromResourceID(1)
 			#endif
 			'.WindowState = WindowStates.wsMaximized
-			.Caption = "MDIMain"
+			#ifdef __FB_64BIT__
+				.Caption = "MDIMain64"
+			#else
+				.Caption = "MDIMain32"
+			#endif
 			.StartPosition = FormStartPosition.CenterScreen
 			.SetBounds 0, 0, 350, 319
 		End With
@@ -233,7 +237,7 @@
 		With mnuRedo
 			.Name = "mnuRedo"
 			.Designer = @This
-			.Caption = "&Redo"
+			.Caption = !"&Redo\tShift+Ctrl+Z"
 			.OnClick = @_mnuEdit_Click
 			.Parent = @mnuEdit
 		End With
@@ -297,7 +301,7 @@
 		With mnuEditSelectAll
 			.Name = "mnuEditSelectAll"
 			.Designer = @This
-			.Caption = "Select &All"
+			.Caption = !"Select &All\tCtrl+A"
 			.OnClick = @_mnuEdit_Click
 			.Parent = @mnuEdit
 		End With
@@ -375,9 +379,9 @@
 			.OnClick = @_mnuWindow_Click
 			.Parent = @mnuWindow
 		End With
-		' MenuItem3
-		With MenuItem3
-			.Name = "MenuItem3"
+		' mnuWindowBar1
+		With mnuWindowBar1
+			.Name = "mnuWindowBar1"
 			.Designer = @This
 			.Caption = "-"
 			.Parent = @mnuWindow
@@ -496,7 +500,7 @@
 		MDIMain.Show
 		
 		App.Run
-	#endif	
+	#endif
 '#End Region
 
 #include once "MDIChild.frm"
@@ -639,6 +643,7 @@ Private Sub MDIMainType.MDIChildMenuUpdate()
 	i = 0
 	mnuWindows(i) = New MenuItem
 	mnuWindows(i)->Caption = "-"
+	mnuWindows(i)->Name = "mnuWindowBar2"
 	mnuWindow.Add mnuWindows(i)
 	
 	'create child list menu
