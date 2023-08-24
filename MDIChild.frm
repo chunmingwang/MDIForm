@@ -1,9 +1,10 @@
 ﻿'#Region "Form"
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
-		#define __MAIN_FILE__ __FILE__
+		#define __MAIN_FILE__
 		#ifdef __FB_WIN32__
 			#cmdline "Form1.rc"
 		#endif
+		Const _MAIN_FILE_ = __FILE__
 	#endif
 	#include once "mff/Form.bi"
 	#include once "mff/TextBox.bi"
@@ -11,9 +12,7 @@
 	Using My.Sys.Forms
 	
 	Type MDIChildType Extends Form
-		Declare Static Sub _Form_Destroy(ByRef Sender As Control)
 		Declare Sub Form_Destroy(ByRef Sender As Control)
-		Declare Static Sub _Form_Activate(ByRef Sender As Form)
 		Declare Sub Form_Activate(ByRef Sender As Form)
 		Declare Constructor
 		
@@ -24,12 +23,12 @@
 		'MDIChild
 		With This
 			.Name = "MDIChild"
-			.Text = "MDIChild"
+			.Text = "Initial..."
 			.Designer = @This
 			.FormStyle = FormStyles.fsMDIChild
-			.Caption = "MDIChild"
-			.OnDestroy = @_Form_Destroy
-			.OnActivate = @_Form_Activate
+			.Caption = "Initial..."
+			.OnDestroy = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Destroy)
+			.OnActivate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Activate)
 			.SetBounds 0, 0, 260, 190
 		End With
 		' TextBox1
@@ -46,21 +45,13 @@
 		End With
 	End Constructor
 	
-	Private Sub MDIChildType._Form_Activate(ByRef Sender As Form)
-		*Cast(MDIChildType Ptr, Sender.Designer).Form_Activate(Sender)
-	End Sub
+	Dim Shared MDIChild As MDIChildType
 	
-	Private Sub MDIChildType._Form_Destroy(ByRef Sender As Control)
-		*Cast(MDIChildType Ptr, Sender.Designer).Form_Destroy(Sender)
-	End Sub
-	
-	'Dim Shared MDIChild As MDIChildType
-	'
-	'#if __MAIN_FILE__ = __FILE__
-	'	MDIChild.Show
-	'
-	'	App.Run
-	'#endif
+	#if _MAIN_FILE_ = __FILE__
+		MDIChild.MainForm = True
+		MDIChild.Show
+		App.Run
+	#endif
 '#End Region
 
 Private Sub MDIChildType.Form_Destroy(ByRef Sender As Control)
