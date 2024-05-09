@@ -743,7 +743,7 @@ Private Sub MDIMainType.MDIChildNew(FileName As WString)
 	Static ChildIdx As Integer = 0
 	ChildIdx += 1
 	Dim MDIChild As MDIChildType Ptr = New MDIChildType
-	lstMdiChild.Add frm
+	lstMdiChild.Add MDIChild
 	MDIChild->Show(MDIMain)
 	
 	If FileName= "" Then
