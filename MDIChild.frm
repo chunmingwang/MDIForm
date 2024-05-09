@@ -15,7 +15,7 @@
 	Using My.Sys.Forms
 	
 	Type MDIChildType Extends Form
-		Closed As Boolean
+		Destroied As Boolean
 		
 		Declare Sub Form_Activate(ByRef Sender As Form)
 		Declare Sub Form_Create(ByRef Sender As Control)

@@ -18,15 +18,13 @@
 	#include once "mff/Dialogs.bi"
 	#include once "mff/TimerComponent.bi"
 	
-	'#include once "..\MDINotepad\TextType.bi"
-	
 	Using My.Sys.Forms
 	
 	Type MDIMainType Extends Form
-		Dim lstMdiChild As List
-		Dim actMdiChild As Any Ptr
-		Dim mnuWindowCount As Integer = -1
-		Dim mnuWindows(Any) As MenuItem Ptr
+		lstMdiChild As List
+		actMdiChild As Any Ptr
+		mnuWindowCount As Integer = -1
+		mnuWindows(Any) As MenuItem Ptr
 		
 		Declare Sub MDIChildActivate(Child As Any Ptr)
 		Declare Sub MDIChildClose(Child As Any Ptr)
@@ -37,15 +35,16 @@
 		Declare Sub MDIChildNew(FileName As WString)
 		Declare Sub MDIChildShow(Child As Any Ptr)
 		
+		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
+		Declare Sub Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
 		Declare Sub Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 		Declare Sub mnuEdit_Click(ByRef Sender As MenuItem)
 		Declare Sub mnuFile_Click(ByRef Sender As MenuItem)
 		Declare Sub mnuHelp_Click(ByRef Sender As MenuItem)
 		Declare Sub mnuView_Click(ByRef Sender As MenuItem)
 		Declare Sub mnuWindow_Click(ByRef Sender As MenuItem)
-		Declare Sub ToolBar1_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
-		Declare Sub Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
 		Declare Sub TimerComponent1_Timer(ByRef Sender As TimerComponent)
+		Declare Sub ToolBar1_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
 		Declare Constructor
 		
 		Dim As MainMenu MainMenu1
@@ -83,6 +82,7 @@
 			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Form_Resize)
 			.OnDropFile = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Filename As WString), @Form_DropFile)
 			.AllowDrop = True
+			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
 			.SetBounds 0, 0, 350, 319
 		End With
 		' ImageList1
@@ -594,17 +594,14 @@ Private Sub MDIMainType.mnuView_Click(ByRef Sender As MenuItem)
 End Sub
 
 Private Sub MDIMainType.mnuWindow_Click(ByRef Sender As MenuItem)
-	Dim h As HWND
-	
 	Select Case Sender.Name
 	Case "mnuWindowClose"
-		h = Cast(HWND, SendMessage(FClient, WM_MDIGETACTIVE, 0, 0))
-		If h Then SendMessage(h, WM_CLOSE, 0, 0)
+		If actMdiChild Then Cast(MDIChildType Ptr, actMdiChild)->CloseForm
 	Case "mnuWindowCloseAll"
-		Do
-			h = Cast(HWND, SendMessage(FClient, WM_MDIGETACTIVE, 0, 0))
-			If h Then SendMessage(h, WM_CLOSE, 0, 0)
-		Loop While (h)
+		Do While actMdiChild
+			mnuWindow_Click(mnuWindowClose)
+			App.DoEvents()
+		Loop
 	Case "mnuWindowCascade"
 		SendMessage FClient, WM_MDICASCADE, 0, 0
 	Case "mnuWindowArrangeIcons"
@@ -614,11 +611,11 @@ Private Sub MDIMainType.mnuWindow_Click(ByRef Sender As MenuItem)
 	Case "mnuWindowTileVertical"
 		SendMessage FClient, WM_MDITILE, MDITILE_VERTICAL, 0
 	Case "mnuWindowMore"
-		MDIList.ShowModal(MDIMain)
-		If MDIList.ModalResult = ModalResults.OK Then
-			If MDIList.Tag = 0 Then Exit Sub
-			Cast(MDIChildType Ptr, MDIList.Tag)->SetFocus()
-		End If
+		Dim MdiList As MDIListType Ptr = New MDIListType
+		MdiList->ShowModal(MDIMain)
+		If MdiList->Tag = NULL Then Exit Sub
+		Cast(MDIChildType Ptr, MdiList->Tag)->SetFocus()
+		Delete MdiList
 	Case Else
 		Cast(MDIChildType Ptr, Sender.Tag)->SetFocus()
 	End Select
@@ -627,7 +624,7 @@ End Sub
 Private Sub MDIMainType.mnuHelp_Click(ByRef Sender As MenuItem)
 	Select Case Sender.Name
 	Case "mnuHelpAbout"
-		MsgBox(!"Visual FB Editor MDI Demo\r\nBy Cm Wang", "MDI Demo")
+		MsgBox(!"Visual FB Editor MDI Form Demo\r\nBy Cm Wang", "MDI Form Demo")
 	Case Else
 		MsgBox Sender.Name & !"\r\nThis function is under construction", "Edit"
 	End Select
@@ -635,6 +632,7 @@ End Sub
 
 Private Sub MDIMainType.ToolBar1_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
 	Debug.Print "ToolBar1_ButtonClick"
+	
 	Select Case Button.Name
 	Case "tbFileNew"
 		mnuFile_Click(mnuFileNew)
@@ -649,6 +647,7 @@ End Sub
 
 Private Sub MDIMainType.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 	Debug.Print "Form_Resize"
+	
 	StatusPanel1.Width = Width
 End Sub
 
@@ -656,8 +655,15 @@ Private Sub MDIMainType.Form_DropFile(ByRef Sender As Control, ByRef Filename As
 	MDIChildNew(Filename)
 End Sub
 
+Private Sub MDIMainType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
+	Debug.Print "Form_Close"
+	
+	mnuWindow_Click(mnuWindowCloseAll)
+End Sub
+
 Private Sub MDIMainType.MDIChildMenuCheck()
 	Debug.Print "MDIChildMenuCheck"
+	
 	Dim i As Integer
 	For i = 0 To mnuWindowCount
 		If mnuWindows(i)->Tag = actMdiChild Then
@@ -670,6 +676,7 @@ End Sub
 
 Private Sub MDIMainType.MDIChildMenuUpdate()
 	Debug.Print "MDIChildMenuUpdate"
+	
 	Dim mMax As Integer = 9 'form 0 to mMax
 	Dim i As Integer
 	Dim j As Integer
@@ -686,52 +693,53 @@ Private Sub MDIMainType.MDIChildMenuUpdate()
 	If mnuWindowCount = 0 Then
 		mnuWindowCount = -1
 		mnuWindow.Enabled = False
-		Exit Sub
-	End If
-	mnuWindow.Enabled = True
-	
-	'count of menu
-	If mnuWindowCount > mMax Then
-		j = mMax
-		mnuWindowCount = mMax + 1
 	Else
-		j = mnuWindowCount
-	End If
-	ReDim mnuWindows(mnuWindowCount)
-	
-	'create menu
-	For i = 0 To j
+		mnuWindow.Enabled = True
+		
+		'count of menu
+		If mnuWindowCount > mMax Then
+			j = mMax
+			mnuWindowCount = mMax + 1
+		Else
+			j = mnuWindowCount
+		End If
+		ReDim mnuWindows(mnuWindowCount)
+		
+		'create menu
+		For i = 0 To j
+			mnuWindows(i) = New MenuItem
+			mnuWindows(i)->Designer = @This
+			mnuWindows(i)->Parent = @mnuWindow
+			If i = 0 Then
+				'create a split bar menu
+				mnuWindows(i)->Caption = "-"
+				mnuWindows(i)->Name = "mnuWindowBar2"
+			Else
+				'create child list menu
+				mnuWindows(i)->Name = "mnuWindow" & i - 1
+				mnuWindows(i)->Caption = Cast(MDIChildType Ptr, lstMdiChild.Item(i - 1))->Text
+				mnuWindows(i)->Tag = lstMdiChild.Item(i - 1)
+				mnuWindows(i)->OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
+			End If
+			mnuWindow.Add mnuWindows(i)
+		Next
+		
+		'create a list... menu
+		If j = mnuWindowCount Then Exit Sub
+		i = mnuWindowCount
 		mnuWindows(i) = New MenuItem
 		mnuWindows(i)->Designer = @This
 		mnuWindows(i)->Parent = @mnuWindow
-		If i = 0 Then
-			'create a split bar menu
-			mnuWindows(i)->Caption = "-"
-			mnuWindows(i)->Name = "mnuWindowBar2"
-		Else
-			'create child list menu
-			mnuWindows(i)->Name = "mnuWindow" & i - 1
-			mnuWindows(i)->Caption = Cast(MDIChildType Ptr, lstMdiChild.Item(i - 1))->Text
-			mnuWindows(i)->Tag = lstMdiChild.Item(i - 1)
-			mnuWindows(i)->OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
-		End If
+		mnuWindows(i)->Name = "mnuWindowMore"
+		mnuWindows(i)->Caption = "More Windows..."
+		mnuWindows(i)->OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
 		mnuWindow.Add mnuWindows(i)
-	Next
-	
-	'create a list... menu
-	If j = mnuWindowCount Then Exit Sub
-	i = mnuWindowCount
-	mnuWindows(i) = New MenuItem
-	mnuWindows(i)->Designer = @This
-	mnuWindows(i)->Parent = @mnuWindow
-	mnuWindows(i)->Name = "mnuWindowMore"
-	mnuWindows(i)->Caption = "More Windows..."
-	mnuWindows(i)->OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
-	mnuWindow.Add mnuWindows(i)
+	End If
 End Sub
 
 Private Sub MDIMainType.MDIChildNew(FileName As WString)
-	Debug.Print "MDIChildNew"
+	Debug.Print "MDIChildNew    " & FileName
+	
 	Static ChildIdx As Integer = 0
 	ChildIdx += 1
 	Dim frm As MDIChildType Ptr = New MDIChildType
@@ -741,8 +749,6 @@ Private Sub MDIMainType.MDIChildNew(FileName As WString)
 	If FileName= "" Then
 		frm->Text = "Untitled - " & ChildIdx
 	Else
-		'Dim t As TextType
-		'frm->TextBox1.Text = t.FromFile(FileName)
 		frm->Text = FileName
 	End If
 	MDIChildMenuUpdate()
@@ -753,8 +759,12 @@ Private Sub MDIMainType.MDIChildActivate(Child As Any Ptr)
 	Debug.Print "MDIChildActivate " & Hex(Child)
 	
 	actMdiChild = Child
-	StatusPanel1.Caption = Cast(MDIChildType Ptr, Child)->Text
-	MDIChildMenuCheck()
+	If actMdiChild Then
+		StatusPanel1.Caption = Cast(MDIChildType Ptr, Child)->Text
+		MDIChildMenuCheck()
+	Else
+		StatusPanel1.Caption = ""
+	End If
 End Sub
 
 Private Sub MDIMainType.MDIChildCreate(Child As Any Ptr)
@@ -769,37 +779,45 @@ End Sub
 
 Private Sub MDIMainType.MDIChildClose(Child As Any Ptr)
 	Debug.Print "MDIChildClose    " & Hex(Child)
-
+	
 End Sub
 
 Private Sub MDIMainType.MDIChildDestroy(Child As Any Ptr)
 	Debug.Print "MDIChildDestroy  " & Hex(Child)
-
-	'following type delete code will cause crash
-	'Delete Cast(MDIChildType Ptr, Child)
-	'so we used timer to delete the MDIChild ptr
 	
-	Cast(MDIChildType Ptr, Child)->Closed = True
+	'following type delete code will cause crash
+	'so i used a timer to delete the MDIChild ptr
+	
+	'Remove the MDIChild ptr from list
+	'lstMdiChild.Remove(lstMdiChild.IndexOf(Child))
+	'Delete the MDIChild ptr
+	'Delete Cast(MDIChildType Ptr, Child)
+	
+	Cast(MDIChildType Ptr, Child)->Destroied = True
 	TimerComponent1.Enabled = False
 	TimerComponent1.Enabled = True
 End Sub
 
 Private Sub MDIMainType.TimerComponent1_Timer(ByRef Sender As TimerComponent)
-	TimerComponent1.Enabled = False
+	Debug.Print "TimerComponent1_Timer"
 	
+	TimerComponent1.Enabled = False
 	Dim i As Integer
 	Dim a As MDIChildType Ptr
 	Dim b As Boolean = False
-
+	
 	For i = lstMdiChild.Count - 1 To 0 Step -1
 		a = Cast(MDIChildType Ptr, lstMdiChild.Item(i))
-		If a->Closed Then
+		If a->Destroied Then
+			'Remove the MDIChild ptr from list
 			lstMdiChild.Remove(i)
+			'Delete the MDIChild ptr
 			Delete a
 			b = True
 		End If
 	Next
 	If b Then MDIChildMenuUpdate()
 	If lstMdiChild.Count > 0 Then Exit Sub
-	StatusPanel1.Caption = ""
+	MDIChildActivate(NULL)
 End Sub
+
