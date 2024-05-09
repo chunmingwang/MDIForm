@@ -742,17 +742,17 @@ Private Sub MDIMainType.MDIChildNew(FileName As WString)
 	
 	Static ChildIdx As Integer = 0
 	ChildIdx += 1
-	Dim frm As MDIChildType Ptr = New MDIChildType
+	Dim MDIChild As MDIChildType Ptr = New MDIChildType
 	lstMdiChild.Add frm
-	frm->Show(MDIMain)
+	MDIChild->Show(MDIMain)
 	
 	If FileName= "" Then
-		frm->Text = "Untitled - " & ChildIdx
+		MDIChild->Text = "Untitled - " & ChildIdx
 	Else
-		frm->Text = FileName
+		MDIChild->Text = FileName
 	End If
 	MDIChildMenuUpdate()
-	MDIChildActivate(frm)
+	MDIChildActivate(MDIChild)
 End Sub
 
 Private Sub MDIMainType.MDIChildActivate(Child As Any Ptr)
@@ -802,17 +802,14 @@ Private Sub MDIMainType.TimerComponent1_Timer(ByRef Sender As TimerComponent)
 	Debug.Print "TimerComponent1_Timer"
 	
 	TimerComponent1.Enabled = False
-	Dim i As Integer
-	Dim a As MDIChildType Ptr
 	Dim b As Boolean = False
 	
-	For i = lstMdiChild.Count - 1 To 0 Step -1
-		a = Cast(MDIChildType Ptr, lstMdiChild.Item(i))
-		If a->Destroied Then
+	For i As Integer = lstMdiChild.Count - 1 To 0 Step -1
+		If Cast(MDIChildType Ptr, lstMdiChild.Item(i))->Destroied Then
 			'Remove the MDIChild ptr from list
 			lstMdiChild.Remove(i)
 			'Delete the MDIChild ptr
-			Delete a
+			Delete Cast(MDIChildType Ptr, lstMdiChild.Item(i))
 			b = True
 		End If
 	Next
