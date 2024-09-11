@@ -829,7 +829,10 @@ Private Sub MDIMainType.TimerComponent1_Timer(ByRef Sender As TimerComponent)
 		End If
 	Next
 	If b Then MDIChildMenuUpdate()
-	If lstMdiChild.Count > 0 Then Exit Sub
-	MDIChildActivate(NULL)
+	If lstMdiChild.Count > 0 Then
+		MDIChildActivate(actMdiChild)
+	Else
+		MDIChildActivate(NULL)
+	End If
 End Sub
 
