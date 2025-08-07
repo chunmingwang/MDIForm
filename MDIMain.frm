@@ -63,6 +63,7 @@
 		Dim As OpenFileDialog OpenFileDialog1
 		Dim As SaveFileDialog SaveFileDialog1
 		Dim As TimerComponent TimerComponent1
+		Dim As MainMenu MainMenu1
 	End Type
 	
 	Constructor MDIMainType
@@ -92,6 +93,13 @@
 			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
 			.AllowDropFiles = True
 			.SetBounds 0, 0, 350, 319
+		End With
+		' MainMenu1
+		With MainMenu1
+			.Name = "MainMenu1"
+			.SetBounds 10, 30, 16, 16
+			.Designer = @This
+			.Parent = @This
 		End With
 		' ImageList1
 		With ImageList1
@@ -691,25 +699,25 @@ End Sub
 
 Private Sub MDIMainType.mnuWindow_Click(ByRef Sender As MenuItem)
 	Select Case Sender.Name
-	Case "mnuWindowClose"
+	Case mnuWindowClose.Name
 		If actMdiChild Then Cast(MDIChildType Ptr, actMdiChild)->CloseForm
-	Case "mnuWindowCloseAll"
+	Case mnuWindowCloseAll.Name
 		For i As Integer = lstMdiChild.Count - 1 To 0 Step -1
 			Cast(MDIChildType Ptr, lstMdiChild.Item(i))->CloseForm
 		Next
-	Case "mnuWindowCascade"
+	Case mnuWindowCascade.Name
 		#ifdef __USE_WINAPI__
 			SendMessage FClient, WM_MDICASCADE, 0, 0
 		#endif
-	Case "mnuWindowArrangeIcons"
+	Case mnuWindowArrangeIcons.Name
 		#ifdef __USE_WINAPI__
 			SendMessage FClient, WM_MDIICONARRANGE, 0, 0
 		#endif
-	Case "mnuWindowTileHorizontal"
+	Case mnuWindowTileHorizontal.Name
 		#ifdef __USE_WINAPI__
 			SendMessage FClient, WM_MDITILE, MDITILE_HORIZONTAL, 0
 		#endif
-	Case "mnuWindowTileVertical"
+	Case mnuWindowTileVertical.Name
 		#ifdef __USE_WINAPI__
 			SendMessage FClient, WM_MDITILE, MDITILE_VERTICAL, 0
 		#endif
