@@ -8,10 +8,11 @@ Changes on 2025/8/8
 4. Modify open button style to dropdown on toolbar
 5. Add dropdown recent menu for open button
 
-# Dark mode
+## Dark mode
 
-![image](https://github.com/chunmingwang/MDIForm/assets/35757455/d3c96a63-52c3-4bc5-81ea-0be5e8c4dc38)
+<img width="336" height="312" alt="image" src="https://github.com/user-attachments/assets/f766ccab-0a81-45e1-8644-5afcbcef377d" />
 
-# Light mode
+## Light mode
 
-![image](https://github.com/chunmingwang/MDIForm/assets/35757455/1a316fae-c6e5-4f56-bf35-30644db75290)
+<img width="336" height="312" alt="image" src="https://github.com/user-attachments/assets/94055739-da2f-4967-83ca-5bd83bd0d061" />
+
