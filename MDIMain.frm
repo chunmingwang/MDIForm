@@ -562,7 +562,6 @@
 			.Name = "tbDarkMode"
 			.Designer = @This
 			.ImageKey = "DarkMode"
-			.ImageIndex = 10
 			.Checked = True
 			.Style = ToolButtonStyle.tbsCheck
 			.Parent = @ToolBar1
