@@ -70,7 +70,7 @@
 		#if _MAIN_FILE_ = __FILE__
 			With App
 				.CurLanguagePath = ExePath & "/Languages/"
-				'.CurLanguage = "Chinese (Simplified)" 'My.Sys.Language
+				.CurLanguage = My.Sys.Language
 			End With
 		#endif
 		' MDIMain
@@ -85,7 +85,6 @@
 			#else
 				This.Icon.LoadFromResourceID(1)
 			#endif
-			'.WindowState = WindowStates.wsMaximized
 			.Caption = "MDIMain"
 			.StartPosition = FormStartPosition.CenterScreen
 			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Form_Resize)
@@ -108,17 +107,17 @@
 			.ImageHeight = 16
 			.SetBounds 30, 30, 16, 16
 			.Designer = @This
-			.Add "New", "New"
 			.Add "About", "About"
-			.Add "Cut", " Cut"
 			.Add "Copy", " Copy"
+			.Add "Cut", " Cut"
+			.Add "DarkMode", "DarkMode"
 			.Add "Exit", "Exit"
 			.Add "File", "File"
+			.Add "New", "New"
 			.Add "Open", "Open"
 			.Add "Paste", "Paste"
 			.Add "Save", "Save"
 			.Add "SaveAll", "SaveAll"
-			.Add "DarkMode", "DarkMode"
 			.Parent = @This
 		End With
 		' ImageList2
@@ -126,17 +125,17 @@
 			.Name = "ImageList2"
 			.SetBounds 50, 30, 16, 16
 			.Designer = @This
-			.Add "New", "New"
 			.Add "About", "About"
-			.Add "Cut", " Cut"
 			.Add "Copy", " Copy"
+			.Add "Cut", " Cut"
+			.Add "DarkMode", "DarkMode"
 			.Add "Exit", "Exit"
 			.Add "File", "File"
+			.Add "New", "New"
 			.Add "Open", "Open"
 			.Add "Paste", "Paste"
 			.Add "SaveD", "Save"
 			.Add "SaveAllD", "SaveAll"
-			.Add "DarkMode", "DarkMode"
 			.Parent = @This
 		End With
 		' mnuFile
